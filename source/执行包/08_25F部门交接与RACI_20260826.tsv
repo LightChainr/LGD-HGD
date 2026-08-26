@@ -1,0 +1,20 @@
+work_item	病理主审	第二病理医师	内镜专家	数据管理员	标本库	分子平台	空间平台	生信	统计	项目负责人
+候选分母与index规则	C	I	C	R	I	I	I	C	C	A
+病灶—标本—蜡块链接	R	I	R	R	C	I	I	C	I	A
+HGD/LGD复核与边界冻结	R	C	I	I	I	I	C	I	C	A
+总体20%重复标注	C	R	I	I	I	I	C	I	R	A
+组织余量与诊断安全保留	A	I	I	I	R	C	C	I	I	C
+连续切片分配	A	I	I	I	R	C	R	I	I	C
+显微切割与区室纯度	R	I	I	I	C	R	C	C	I	A
+DNA发现和腺体回测	C	I	I	I	C	R	I	R	C	A
+RT-qPCR技术冻结	C	I	I	I	C	R	I	C	R	A
+mIF技术冻结	R	C	I	I	C	C	R	C	R	A
+克隆盲态判定	I	I	I	C	I	C	I	R	C	A
+分析集与SAP锁定	C	I	C	C	I	C	C	R	R	A
+独立结果复核	I	I	I	C	I	I	I	C	R	A
+注释	R=执行;A=最终负责;C=会签/咨询;I=知会									
+E1 near-L全量双人复核	A	R	I	I	I	I	C	I	C	C
+HGD exclusion buffer与sandwich H&E	A	C	I	I	R	C	R	I	C	C
+possible HGD admixture联合判定	A	C	I	I	I	R	C	R	C	C
+E1同克隆距离可识别性Gate	C	I	I	C	I	C	R	R	A	C
+正式队列资源闭合与多中心触发	C	I	C	R	C	C	C	C	R	A
