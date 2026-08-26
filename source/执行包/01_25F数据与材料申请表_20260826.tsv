@@ -1,0 +1,28 @@
+request_id	阶段	优先级	申请部门或来源	数据或材料	核心字段或规格	用途	是否进入分析区	备注
+REQ001	A病例审计	P0	数据平台主管/病理系统	受控身份映射	原始患者ID到patient_key的映射	跨系统链接	否	只保存在医院受控区
+REQ002	A病例审计	P0	病理系统	病理报告与标本主表	patient_key;report_key;specimen_key;报告日期;病理号;标本描述	候选分母和标本链接	是	日期按伦理批准处理
+REQ003	A病例审计	P0	病理系统	病理诊断结构	组织学家族;最高级别;HGD局灶性;浸润状态;切缘;碎片化	纳排和病理分层	是	传统腺瘤主队列
+REQ004	A病例审计	P0	内镜系统	内镜检查主表	episode_key;日期;指征;肠道准备;检查完整性;病灶总数	确定index episode	是	生成7/14/30/60/90天候选窗
+REQ005	A病例审计	P0	内镜系统	病灶级信息	lesion_key;部位;大小;形态;切除方式;整块切除;完整性;病理号描述	病灶—标本链接及B-L选择	是	不能只保留检查级文本
+REQ006	A病例审计	P0	标本库	蜡块清单	block_key;specimen_key;包埋年份;特殊处理;剩余组织等级;可调状态	组织可行性漏斗	是	申请同一标本全部蜡块
+REQ007	A病例审计	P0	病理科	HE与既有切片清单	玻片键;block_key;层号;染色类型;扫描状态	边界初筛和数字化	是	先调阅既有HE
+REQ008	A病例审计	P0	病理科	既有IHC清单	marker;平台;抗体克隆批号;年份;指征;原始结果	审计既有材料	是	既有IHC不作为入组条件
+REQ009	A病例审计	P0	病理科	边界与组织可用性复核	continuous_lgd_flag;hgd_lgd_boundary_present;distance_layers_possible;tissue_remaining_grade;N_resource_eligible;N_formal_untouched	G2病例池判定	是	保存首个失败原因；预留TECH/PILOT后再判断正式队列资源容量
+REQ010	A病例审计	P0	病理科/标本库	匹配正常材料	正常黏膜块或其他可靠胚系DNA来源;可用量	体细胞事件过滤	是	没有可靠正常对照需单列
+REQ011	A病例审计	P0	内镜+病理	同步独立LGD	同次内镜B-L病灶部位;大小;组织学;蜡块;组织余量	E3同宿主配对	是	B-L为嵌套亚队列
+REQ012	A病例审计	P0	HIS/遗传	最小纳排信息	性别;年龄带;FAP/Lynch/其他综合征;IBD;既往CRC	排除遗传和IBD相关病变	是	不申请无关全量HIS
+REQ013	B技术开发	P0	病理科	全切片扫描	8-10例全部相关HE;原始分辨率;扫描参数	边界、坐标和路径距离	是	连续切片保存层号
+REQ014	B技术开发	P0	病理科	病理标注	W-H;W-L-near/mid/far;B-L;N;边界置信带;拓扑匹配伪边界;near-L第二病理复核	冻结取材坐标	是	总体至少20%病例重复标注；所有拟进入E1的near-L全量双人复核
+REQ015	B技术开发	P0	标本库/病理平台	未染连续切片	DNA、RNA、mIF分层切片;sandwich H&E;层号;组织消耗记录	腺体取材和配准	部分	先由平台评估每例切片预算；分子层组前后H&E必须可追溯
+REQ016	B技术开发	P0	显微切割平台	腺体/腺体簇	最初5例每关键区8-12个;gland_key;坐标;顺序;上皮纯度	克隆饱和试验	是	单腺体与腺体簇不得混用
+REQ017	B技术开发	P0	分子平台	DNA发现检测	W-H;W-L-far;B-L;匹配正常;100-300基因UMI;低深度CNA	发现患者特异克隆锚点	是	含样本指纹和污染检查
+REQ018	B技术开发	P0	分子平台	患者特异事件回测	全部距离带;UMI计数或数字PCR;VAF;LOD	腺体级克隆关系	是	常见热点不能单独定义克隆
+REQ019	B技术开发	P0	分子平台	FFPE RNA质量与RT-qPCR	DV200或替代指标;输入量;Ct;技术重复;失败原因	冻结RNA可行性	是	优先显微切割区室
+REQ020	B技术开发	P1	病理/空间平台	上皮—间质mIF	pan-CK;pSMAD2/3;FAP或alpha-SMA;Ki-67;核标记	主要空间表型候选	是	抗体按FFPE质量冻结
+REQ021	B技术开发	P1	病理/空间平台	免疫可见性mIF	pan-CK;HLA-I或B2M;CD8;CD103;GZMB;核标记	条件性次要轴	是	技术资源不足时后置
+REQ022	B技术开发	P0	全部实验平台	运行与QC元数据	assay_key;batch;试剂批号;操作者;输入量;qc_status;qc_reason;成本	重复性、批次和成本审计	是	失败记录不得删除
+REQ023	C生物学先导	P0	病理/分子平台	15-20例独立先导材料	按冻结的DNA、RNA和主要空间面板	方向选择和样本量估计	是	不按技术开发效应选择病例；L4效应点估计不直接作为正式power目标效应
+REQ024	D正式队列	P0	病理/分子平台	40-60例E1可分析材料（非40-60例入组）	按签署SAP和冻结检测方案	正式确认性分析	是	需同克隆距离跨度可识别、反污染QC通过；仅在保守N_E1_expected>=40时批准单中心
+REQ025	B技术开发	P0	病理科	near-L反污染复核	HGD exclusion buffer;sandwich H&E;第二病理复核;跨层一致性	排除隐匿HGD/跨层错配造成假梯度	是	buffer仅由L2技术误差和腺体尺度冻结，不按表型调整
+REQ026	B技术开发	P0	分子+生信	HGD admixture QC	HGD-private多事件;VAF;LOD;possible_hgd_admixture;判定理由	避免低比例HGD污染同时制造克隆和表型信号	是	可疑admixture事件不得单独提升clone_support
+REQ027	B技术开发	P0	统计+数据	正式队列资源预测指标	N_resource_eligible;N_TECH;N_PILOT;N_formal_untouched;p_E1_plan;N_E1_expected	证明独立正式队列资源闭合	是	单中心L5要求保守N_E1_expected>=40
