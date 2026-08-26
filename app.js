@@ -26,7 +26,8 @@
     else msg='达到单中心最低规划线，但仍需 L2–L4 后续 Gate 与签署 SAP。';
     $('#resourceDecision').textContent=msg;
   }
-  ['nResource','nTech','nPilot','pE1'].forEach(id => $('#'+id)?.addEventListener('input',calcResources)); calcResources();
+  ['nResource','nTech','nPilot','pE1'].forEach(id => $('#'+id)?.addEventListener('input',calcResources));
+  calcResources();
 
   const toast=(msg)=>{const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400)};
   $$('.copy-btn').forEach(b=>b.addEventListener('click', async()=>{try{await navigator.clipboard.writeText(b.dataset.copy);toast('已复制')}catch(e){toast('浏览器未允许自动复制')}}));
@@ -49,21 +50,101 @@
   checks.forEach((txt,i)=>{const id='ck'+i;const label=document.createElement('label');label.className='check-item';label.innerHTML=`<input type="checkbox" id="${id}"><span>${txt}</span>`;list.appendChild(label);const inp=$('#'+id);inp.checked=localStorage.getItem('25f_'+id)==='1';inp.addEventListener('change',()=>localStorage.setItem('25f_'+id,inp.checked?'1':'0'));});
   $('#resetChecks')?.addEventListener('click',()=>{$$('.check-item input').forEach(inp=>{inp.checked=false;localStorage.removeItem('25f_'+inp.id)});toast('已重置')});
 
-  const docs=window.SOURCE_DOCS||[];
-  let activeDoc=null, currentView='rendered';
-  function kindLabel(k){return k==='markdown'?'方案文档':k==='tsv'?'数据表':'文本'}
+  const SOURCE_FILES = [
+    'source/执行包/00_25F具体执行方案与申请说明_20260826.md',
+    'source/执行包/01_25F数据与材料申请表_20260826.tsv',
+    'source/执行包/02_25F分析任务申请表_20260826.tsv',
+    'source/执行包/03_25F分层实施与闸门SOP_20260826.md',
+    'source/执行包/04_25F病理科执行清单_20260826.tsv',
+    'source/执行包/05_25F组织分配与切片预算模板_20260826.tsv',
+    'source/执行包/06_25F最小数据申请分层表_20260826.tsv',
+    'source/执行包/07_25F统计分析冻结摘要_20260826.md',
+    'source/执行包/08_25F部门交接与RACI_20260826.tsv',
+    'source/执行包/09_25F启动会议确认单_20260826.md',
+    'source/执行包/10_依据与冻结合同/01_后续分析计划_v1.8.md',
+    'source/执行包/10_依据与冻结合同/02_完整院内数据字典.tsv',
+    'source/执行包/10_依据与冻结合同/03_终点冻结合同_v2.0.tsv',
+    'source/执行包/10_依据与冻结合同/04_分析目标合同_v2.0.tsv',
+    'source/执行包/11_25F临床沟通与启动会话术_20260826.md',
+    'source/执行包/12_25F修订说明_20260826.md',
+    'source/执行包/README.md'
+  ];
+
+  let docs=[], activeDoc=null, currentView='rendered';
+  const escapeHTML = s => String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  const titleFromPath = path => path.split('/').pop().replace(/\.(md|tsv)$/i,'');
+  const kindFromPath = path => path.toLowerCase().endsWith('.tsv') ? 'tsv' : 'markdown';
+  const kindLabel = k => k==='markdown'?'方案文档':k==='tsv'?'数据表':'文本';
+  const inlineMD = text => escapeHTML(text)
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g,'<em>$1</em>');
+
+  function renderTSV(raw){
+    const rows=raw.replace(/\r/g,'').split('\n').filter((r,i,a)=>r.length || i<a.length-1).map(r=>r.split('\t'));
+    if(!rows.length) return '<p>空表。</p>';
+    return `<div class="table-wrap"><table class="data-table"><thead><tr>${rows[0].map(c=>`<th>${escapeHTML(c)}</th>`).join('')}</tr></thead><tbody>${rows.slice(1).map(r=>`<tr>${r.map(c=>`<td>${escapeHTML(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }
+
+  function renderMarkdown(raw){
+    const lines=raw.replace(/\r/g,'').split('\n');
+    let out=[], inCode=false, code=[], listType=null, quote=[];
+    const closeList=()=>{if(listType){out.push(`</${listType}>`);listType=null;}};
+    const closeQuote=()=>{if(quote.length){out.push(`<blockquote>${quote.map(x=>`<p>${inlineMD(x)}</p>`).join('')}</blockquote>`);quote=[];}};
+    for(let i=0;i<lines.length;i++){
+      const line=lines[i];
+      if(line.startsWith('```')){
+        closeList();closeQuote();
+        if(inCode){out.push(`<pre><code>${escapeHTML(code.join('\n'))}</code></pre>`);code=[];inCode=false;}else inCode=true;
+        continue;
+      }
+      if(inCode){code.push(line);continue;}
+      if(/^\s*\|.*\|\s*$/.test(line) && i+1<lines.length && /^\s*\|?\s*:?-+/.test(lines[i+1])){
+        closeList();closeQuote();
+        const parse=r=>r.trim().replace(/^\||\|$/g,'').split('|').map(x=>x.trim());
+        const head=parse(line); i+=2; const body=[];
+        while(i<lines.length && /^\s*\|.*\|\s*$/.test(lines[i])){body.push(parse(lines[i]));i++;}
+        i--;
+        out.push(`<div class="table-wrap"><table class="data-table"><thead><tr>${head.map(c=>`<th>${inlineMD(c)}</th>`).join('')}</tr></thead><tbody>${body.map(r=>`<tr>${r.map(c=>`<td>${inlineMD(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
+        continue;
+      }
+      if(/^>\s?/.test(line)){closeList();quote.push(line.replace(/^>\s?/,''));continue;} else closeQuote();
+      const h=line.match(/^(#{1,6})\s+(.+)$/); if(h){closeList();out.push(`<h${h[1].length}>${inlineMD(h[2])}</h${h[1].length}>`);continue;}
+      if(/^\s*[-*]\s+/.test(line)){if(listType!=='ul'){closeList();listType='ul';out.push('<ul>');}out.push(`<li>${inlineMD(line.replace(/^\s*[-*]\s+/,''))}</li>`);continue;}
+      if(/^\s*\d+[.)]\s+/.test(line)){if(listType!=='ol'){closeList();listType='ol';out.push('<ol>');}out.push(`<li>${inlineMD(line.replace(/^\s*\d+[.)]\s+/,''))}</li>`);continue;}
+      closeList();
+      if(/^\s*---+\s*$/.test(line)){out.push('<hr>');continue;}
+      if(!line.trim()){out.push('');continue;}
+      out.push(`<p>${inlineMD(line)}</p>`);
+    }
+    closeList();closeQuote();
+    if(inCode) out.push(`<pre><code>${escapeHTML(code.join('\n'))}</code></pre>`);
+    return out.join('\n');
+  }
+
   function renderList(filter=''){
     const q=filter.trim().toLowerCase();
     const hits=docs.filter(d=>!q || (d.title+' '+d.path+' '+d.raw).toLowerCase().includes(q));
     $('#searchCount').textContent=`${hits.length}/${docs.length}`;
     const box=$('#docList');box.innerHTML='';
-    hits.forEach(d=>{const b=document.createElement('button');b.className='doc-item'+(activeDoc?.id===d.id?' active':'');b.innerHTML=`<b>${escapeHTML(d.title)}</b><small>${escapeHTML(d.path)}</small>`;b.addEventListener('click',()=>openDoc(d));box.appendChild(b)});
-    if(q && hits.length && (!activeDoc || !hits.some(d=>d.id===activeDoc.id))) openDoc(hits[0], false);
+    hits.forEach(d=>{const b=document.createElement('button');b.className='doc-item'+(activeDoc?.path===d.path?' active':'');b.innerHTML=`<b>${escapeHTML(d.title)}</b><small>${escapeHTML(d.path.replace('source/执行包/',''))}</small>`;b.addEventListener('click',()=>openDoc(d));box.appendChild(b)});
+    if(q && hits.length && (!activeDoc || !hits.some(d=>d.path===activeDoc.path))) openDoc(hits[0], false);
   }
-  function escapeHTML(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-  function openDoc(d, refresh=true){activeDoc=d;$('#docType').textContent=kindLabel(d.kind);$('#docTitle').textContent=d.title;$('#docPath').textContent=d.path;$('#docRendered').innerHTML=d.html;$('#docRaw').textContent=d.raw;if(refresh)renderList($('#docSearch').value);setView(currentView);}
+  function openDoc(d, refresh=true){activeDoc=d;$('#docType').textContent=kindLabel(d.kind);$('#docTitle').textContent=d.title;$('#docPath').textContent=d.path.replace('source/执行包/','');$('#docRendered').innerHTML=d.kind==='tsv'?renderTSV(d.raw):renderMarkdown(d.raw);$('#docRaw').textContent=d.raw;if(refresh)renderList($('#docSearch').value);setView(currentView);}
   function setView(v){currentView=v;$$('.view-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));$('#docRendered').hidden=v!=='rendered';$('#docRaw').hidden=v!=='raw';}
   $$('.view-btn').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
   $('#docSearch')?.addEventListener('input',e=>renderList(e.target.value));
-  renderList(); if(docs.length) openDoc(docs[0]);
+
+  async function loadDocs(){
+    $('#searchCount').textContent='加载中';
+    const loaded=await Promise.all(SOURCE_FILES.map(async path=>{
+      try{
+        const res=await fetch(path,{cache:'no-cache'});
+        if(!res.ok) throw new Error(String(res.status));
+        return {path,title:titleFromPath(path),kind:kindFromPath(path),raw:await res.text()};
+      }catch(err){return {path,title:titleFromPath(path),kind:kindFromPath(path),raw:`[加载失败] ${path}\n\n请通过 HTTP 静态服务器或部署后的站点访问；浏览器直接 file:// 打开时可能阻止读取本地源文件。`};}
+    }));
+    docs=loaded; renderList(); if(docs.length) openDoc(docs[0]);
+  }
+  loadDocs();
 })();
