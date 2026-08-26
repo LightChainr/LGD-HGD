@@ -1,0 +1,7 @@
+endpoint_id	role	framework_status	population	exposure	outcome	independent_unit	model	multiplicity	readiness_gate	downgrade_rule
+E1	unique_confirmatory_primary	framework_frozen_measurement_pending_pilot	传统腺瘤路径;strong/moderate same-clone;反污染QC通过;患者内同克隆距离跨度可识别的形态学W-L	到最近可信HGD边界的连续黏膜路径距离	一个平台内且区室明确的冻结主表型	patient	两阶段患者等权：患者内同克隆距离斜率→患者级斜率等权平均；层级/空间相关模型为支持性	双侧alpha=0.05	G2_MAIN;G3;G4_CLONE_SPAN;G4_ANTICONTAM;G5;G6;RESOURCE_CLOSURE	克隆锚定失败或同克隆距离跨度不足则不得保留原E1；反污染QC失败则相应坐标退出；距离失败停止梯度主张
+E2	key_secondary	framework_frozen_measurement_pending_pilot	W-H与W-L-near	病理区域	冻结区室终点的边界跃迁	patient	患者内配对边界对比	与E3和E4组成Holm家族;双侧FWER0.05	G3;G5;G6	只有E2而无E1时只能解释病理级别不连续
+E3	key_secondary_nested	framework_frozen_sample_size_pending	G2-BL合格亚队列	W-L-far与同患者同次独立B-L	冻结区室终点配对差	patient	预设协变量的患者内配对模型	与E2和E4组成Holm家族;双侧FWER0.05	G2_BL;G5;G6	B-L不足时降探索或不估计;不阻断E1
+E4	key_secondary_interaction	framework_frozen_encoding_pending_pilot	全部克隆可判读W-L	连续距离与clone_support交互	冻结区室终点	patient	全部克隆可判读W-L的独立层级交互模型；distance×clone_support；不得写入E1主模型	与E2和E3组成Holm家族;双侧FWER0.05	G4;G5;G6	不得在只含同克隆子集中估计克隆交互
+E5	heterogeneity_and_stop	framework_frozen_threshold_pending_confirmation	同一区域多腺体	克隆及空间层级	一致率;ICC;克隆不一致率	patient	方差分解和患者级摘要	描述性;不加入确认性家族	G4;G5;G6	检测限未通过时不把不一致解释为生物异质性
+PUB_MEMBER_CONTEXT	supporting_external	internal_analysis_complete_pending_independent_review	各公共数据集冻结患者群	数据集特异病理或区域对比	成员方向;区室;可靠性;宏观CNA	patient	各数据集独立模型;不合并原始矩阵	按既有登记完整报告	G1	不得称HGD边界距离同克隆或B-L验证
