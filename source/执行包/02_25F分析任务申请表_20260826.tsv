@@ -1,0 +1,30 @@
+task_id	阶段	优先级	负责人角色	分析任务	主要输入	方法或约束	必需输出	闸门或完成标准
+ANA001	A病例审计	P0	数据管理员	患者与报告去重	病理报告;受控映射	每名患者冻结一个index候选;保留所有关系	cohort_tiers.tsv;denominator_audit.tsv	分母按患者/报告分开
+ANA002	A病例审计	P0	数据管理员+内镜专家	内镜episode候选链接	病理日期;内镜日期	7/14/30/60/90天窗;未链接原因	candidate_episode_links.tsv;window_sensitivity.tsv	时间窗不是病灶确认
+ANA003	A病例审计	P0	生信+内镜专家	内镜文本病灶结构化	内镜报告文本	抽取部位/大小/形态/切除/病理号	lesion_candidates.tsv;ambiguity_log.tsv	候选不得直接视为确认链接
+ANA004	A病例审计	P0	内镜+病理+数据管理员	病灶—标本—蜡块人工审计	候选链接;病理;蜡块系统	随机至少10例加全部歧义病例	linkage_audit.tsv;issue_log.tsv	稳定规则后再扩大
+ANA005	A病例审计	P0	病理负责人	组织可行性漏斗	全部A层候选蜡块	唯一首个失败原因;B-L单独嵌套;计算N_resource_eligible并预留TECH/PILOT	tissue_inventory.tsv;case_funnel.tsv;exclusion_reasons.tsv;resource_closure.tsv	报告N_formal_untouched；<40则单中心正式队列数学上不可行
+ANA006	B技术开发	P0	数字病理负责人	边界标注一致性	8-10例WSI	总体重复标注;kappa;边界置信带;所有E1 near-L第二病理独立复核	pathology_repeatability.tsv;near_l_dual_review.tsv	kappa>=0.70
+ANA007	B技术开发	P0	空间分析负责人	连续切片配准	连续HE/未染/mIF	记录层号;配准误差;冻结坐标	registration_manifest.tsv	跨切片可靠配对率>=70%
+ANA008	B技术开发	P0	空间分析负责人	真实路径距离计算	边界;腺体坐标	沿黏膜路径;禁止跨皱襞裂隙捷径	distance_manifest.tsv;distance_qc.tsv	距离ICC>=0.80
+ANA009	B技术开发	P0	病理+空间负责人	匹配伪边界/损伤边界分析	修复/糜烂边界;非HGD边界;拓扑匹配伪边界	与真HGD边界使用相同算法；匹配病灶拓扑/边缘距离/可用黏膜长度	negative_boundary_qc.tsv	排除组织组成/损伤伪影
+ANA010	B技术开发	P0	分子+生信负责人	体细胞事件发现	W-H;W-L-far;B-L;正常DNA	UMI变异;CNA;指纹;污染检查	clone_events_discovery.tsv	患者特异可回测事件
+ANA011	B技术开发	P0	分子+生信负责人	腺体克隆回测	全部距离带腺体	UMI/数字PCR;位点特异LOD	clone_events.tsv;LOD_report.md	>=70%病例可获得锚点
+ANA012	B技术开发	P0	独立克隆判定员	盲态克隆分级	事件表;W-H参照	strong/moderate/uncertain/not_supported/not_evaluable	clone_calls.tsv	盲于距离表型
+ANA013	B技术开发	P0	生信+统计	腺体采样饱和分析	最初5例每区8-12腺体	按采样顺序计算归属稳定性	saturation.tsv	增采后归属改变<=15%
+ANA014	B技术开发	P0	分子平台+统计	RT-qPCR技术选择	候选基因;Ct;RNA质量	只按缺失/重复性/纯度/批次选择	qpcr_qc.tsv;axis_freeze_decision.tsv	不得按距离P值选基因
+ANA015	B技术开发	P0	空间平台+统计	mIF主要表型选择	两套候选面板	区室明确;重复性;缺失;批次	endpoint_comparison.tsv;endpoint_freeze_decision.tsv	主要读出ICC>=0.75
+ANA016	公共数据	P0	生信负责人	机制轴外部冻结	GSE237249;Gut2023;GSE117606;GSE41657;单细胞	患者级模型;leave-one-gene-out;细胞来源	public_axis_evidence.tsv;candidate_freeze.tsv	至少两个独立患者级数据方向一致
+ANA017	公共数据	P1	生信负责人	克隆规则外部参照	INCISE VCF;GSE128433 CNA	患者内与错配患者对照	clone_rule_reference.tsv	公共数据不称本院边界验证
+ANA018	C生物学先导	P0	统计+生信	层级先导模型	15-20例冻结数据	患者为独立单位；患者级同克隆距离斜率；方向/稳健性，不按最大效应选power输入	pilot_effects.tsv;variance_components.tsv	约65%患者方向一致且LOPO稳定；排除病理/组成/损伤/admixture解释
+ANA019	C生物学先导	P0	统计负责人	样本量与精度模拟	预冻结Delta_target;先导方差/ICC;技术产率;N_formal_untouched	不用L4最大观察效应；采用保守方差上界；模拟E1可分析40-60例	power_precision_simulation.tsv	所需E1可分析患者<=60且保守N_E1_expected>=40，否则多中心
+ANA020	C生物学先导	P0	项目负责人+统计	竞争解释选择	距离;克隆;W-L-far;B-L	预设四路线;不重新筛基因	freeze_register.tsv;signed_SAP	只允许一次方向冻结
+ANA021	D正式分析	P0	统计负责人	E1主要终点	strong/moderate same-clone且反污染QC通过、同克隆距离跨度可识别的W-L	两阶段患者等权：先患者内斜率，再汇总；技术重复/腺体不增加患者权重	E1_patient_slopes.tsv;E1_result.tsv;model_diagnostics.tsv	双侧alpha=0.05
+ANA022	D正式分析	P0	统计负责人	E2-E4关键次要终点	W-H/W-L-near;W-L-far/B-L;距离x克隆	E2/E3患者内配对；E4仅在全部克隆可判读W-L估计distance×clone；Holm校正	E2_E4_results.tsv	FWER 0.05
+ANA023	D正式分析	P0	统计+生信	E5异质性与停止分析	同区多腺体	ICC;一致率;克隆不一致率	E5_heterogeneity.tsv	检测限不合格时不解释生物异质性
+ANA024	D正式分析	P0	统计负责人	敏感性与偏倚分析	病理复核;细胞比例;年代;固定;批次	预指定模型;完整报告负结果	sensitivity_results.tsv;deviation_log.tsv	不得用次要终点替代E1失败
+ANA025	全程	P0	独立复核员	证据和主张审计	代码;日志;结果登记;论文主张	患者单位;数据版本;结果所有权;负结果	independent_review_log.tsv;claim_audit.tsv	未复核结果不得进入主文结论
+ANA026	B技术开发	P0	病理+空间负责人	HGD exclusion buffer与sandwich H&E冻结	跨层配准误差;腺体尺度;near-L候选坐标	buffer=max(2×P95跨层配准误差,1个典型腺体直径);不看表型结果	anti_contamination_sop.tsv;sandwich_he_qc.tsv	所有拟E1 near-L可执行双人复核+夹心H&E
+ANA027	B技术开发	P0	分子+生信+独立克隆判定员	HGD admixture识别	W-H HGD-private多事件;near-L UMI/VAF/LOD;病理配准QC	低VAF成组HGD-private且符合污染模式者标记possible_hgd_admixture；不得单独提升克隆支持	hgd_admixture_qc.tsv	主要E1不含未解决possible_hgd_admixture坐标
+ANA028	B技术开发	P0	统计+生信	E1同克隆距离可识别性	clone_calls;distance_manifest;L2测量误差	至少2个独立same-clone位置(优先>=3);跨度>D_min;D_min仅技术冻结	e1_support_by_patient.tsv	>=70%克隆可判读技术病例满足；否则E1降级
+ANA029	B技术开发	P0	统计+数据管理员	病例级E1可分析率与资源闭合	resource_closure;E1支持;DNA/RNA/表型QC;反污染QC	按未来正式规则计算formal_e1_eligible_flag；p_E1_plan=病例级合格比例的一侧80% Wilson下限	formal_yield_projection.tsv	N_E1_expected>=40方可保留单中心正式确认
