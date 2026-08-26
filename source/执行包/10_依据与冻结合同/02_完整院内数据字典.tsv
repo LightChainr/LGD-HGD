@@ -1,0 +1,135 @@
+table	field	type	source	required	direct_identifier	analysis_workspace_allowed	definition
+secure_linkage	source_patient_id	string	HIS/LIS/endoscopy/pathology	yes	yes	no	医院原始患者标识；只存在于受控映射区
+patient	patient_key	string	secure linkage service	yes	no	yes	不可逆匿名患者键；唯一独立统计单位
+patient	sex_at_birth	category	HIS	yes	no	yes	出生登记性别；未知单列
+patient	birth_year_band	category	HIS	yes	no	yes	按伦理允许的年龄带；不保留完整出生日期
+patient	hereditary_syndrome_flag	boolean	HIS/pathology/genetics	yes	no	yes	FAP、Lynch 或其他明确遗传性息肉综合征
+patient	ibd_flag	boolean	HIS/pathology	yes	no	yes	炎症性肠病相关异型增生排除标志
+endoscopy_episode	episode_key	string	endoscopy	yes	no	yes	同一次内镜检查匿名键
+endoscopy_episode	patient_key	string	secure linkage service	yes	no	yes	关联患者
+endoscopy_episode	procedure_date_shifted	date	endoscopy	yes	no	yes	受控平移或伦理批准的检查日期
+endoscopy_episode	indication	category	endoscopy	yes	no	yes	筛查、监测、症状或其他预设类别
+endoscopy_episode	bowel_prep_quality	category	endoscopy	no	no	yes	标准化肠道准备质量
+endoscopy_episode	complete_exam_flag	boolean	endoscopy	yes	no	yes	是否到达盲肠/完成预定范围
+endoscopy_episode	total_lesion_count	integer	endoscopy	yes	no	yes	同次内镜记录的病灶总数
+lesion	lesion_key	string	endoscopy/pathology linkage	yes	no	yes	同一次内镜内的独立病灶键
+lesion	episode_key	string	endoscopy	yes	no	yes	关联内镜 episode
+lesion	location	category	endoscopy/pathology	yes	no	yes	盲肠、升结肠、横结肠、降结肠、乙状结肠、直肠等冻结分类
+lesion	size_mm	number	endoscopy/pathology	yes	no	yes	优先内镜测量；病理测量另保留来源
+lesion	morphology	category	endoscopy	no	no	yes	巴黎分型或可映射形态
+lesion	resection_method	category	endoscopy	yes	no	yes	EMR、ESD、圈套、手术等
+lesion	en_bloc_flag	boolean	endoscopy/pathology	yes	no	yes	整块切除标志
+lesion	complete_resection_assessment	category	endoscopy/pathology	no	no	yes	完整、疑似不完整、未知
+lesion_pair	bl_pair_key	string	derived linkage	conditional	no	yes	B-L 嵌套比较键；只在存在合格同步独立 LGD 时建立
+lesion_pair	episode_key	string	endoscopy	conditional	no	yes	index lesion 与 B-L 必须属于同一次内镜
+lesion_pair	index_lesion_key	string	endoscopy/pathology linkage	conditional	no	yes	含 HGD/LGD 边界的 index lesion
+lesion_pair	bl_lesion_key	string	endoscopy/pathology linkage	conditional	no	yes	同步独立形态学 LGD 病灶
+lesion_pair	selection_rank	integer	derived	conditional	no	yes	多个 B-L 时按冻结的组织学、部位、大小和组织质量规则排序
+lesion_pair	selection_rule_version	string	analysis contract	conditional	no	yes	不得使用分子或表型结果选择 B-L
+lesion_pair	pair_eligible_flag	boolean	pathology/statistical review	conditional	no	yes	是否进入 E3；失败原因进入排除日志
+specimen	specimen_key	string	pathology	yes	no	yes	去标识病理标本键
+specimen	lesion_key	string	endoscopy/pathology linkage	yes	no	yes	关联病灶
+specimen	histology_family	category	pathology	yes	no	yes	传统腺瘤、锯齿病变、其他
+specimen	highest_grade	category	pathology	yes	no	yes	LGD、HGD、黏膜内癌、T1 或争议
+specimen	hgd_focality	category	pathology	no	no	yes	局灶、多灶、广泛或未知
+specimen	continuous_lgd_flag	boolean	pathology review	yes	no	yes	HGD 边界外是否存在可连续追踪的形态学 LGD
+specimen	invasion_status	category	pathology	yes	no	yes	无浸润、黏膜内、浅 T1、其他 T1、争议
+specimen	margin_status	category	pathology	no	no	yes	切缘状态
+specimen	fragmentation_grade	category	pathology	yes	no	yes	整块、轻度碎片、严重碎片
+block	block_key	string	pathology archive	yes	no	yes	去标识蜡块键
+block	specimen_key	string	pathology archive	yes	no	yes	关联标本
+block	block_year	integer	pathology archive	yes	no	yes	包埋年份
+block	tissue_remaining_grade	category	pathology archive	yes	no	yes	充足、有限、耗竭、未知
+block	hgd_lgd_boundary_present	boolean	pathology review	yes	no	yes	该块是否含可复核 HGD/LGD 边界
+block	distance_layers_possible	category	pathology review	yes	no	yes	W-H/near/far 或 W-H/near/mid/far
+block	special_processing_flag	boolean	pathology archive	yes	no	yes	脱钙或其他影响分子质量的处理
+ihc	ihc_record_key	string	pathology	yes	no	yes	既有 IHC 检测记录键
+ihc	block_key	string	pathology	yes	no	yes	关联蜡块
+ihc	marker	string	pathology	yes	no	yes	抗体标志物
+ihc	platform	string	pathology	no	no	yes	染色平台
+ihc	clone_lot	string	pathology	no	no	yes	抗体克隆/批号；缺失需记录
+ihc	test_year	integer	pathology	yes	no	yes	检测年份
+ihc	indication	category	pathology	yes	no	yes	检测原因；用于审计指征偏倚
+ihc	result_raw	string	pathology	no	no	yes	原报告结果；后续映射为冻结类别
+lab_window	lab_record_key	string	LIS	yes	no	yes	去标识检验记录键
+lab_window	patient_key	string	LIS	yes	no	yes	关联患者
+lab_window	analyte_code	string	LIS	yes	no	yes	冻结分析物代码
+lab_window	value_standardized	number	LIS	yes	no	yes	单位转换后的数值
+lab_window	unit_standardized	string	LIS	yes	no	yes	标准单位
+lab_window	days_from_index	integer	LIS	yes	no	yes	相对 index 内镜天数
+lab_window	specimen_type	category	LIS	no	no	yes	血清、血浆、全血等
+followup_event	followup_key	string	endoscopy/pathology	yes	no	yes	随访事件键
+followup_event	patient_key	string	secure linkage service	yes	no	yes	关联患者
+followup_event	days_from_index	integer	endoscopy/pathology	yes	no	yes	距 index 的相对天数
+followup_event	event_type	category	endoscopy/pathology	yes	no	yes	复查内镜、同步遗漏校正、异时性病灶等
+followup_event	advanced_neoplasia_flag	boolean	pathology	yes	no	yes	按冻结定义的高级病变结局
+region	region_key	string	spatial annotation	yes	no	yes	病灶内区域键
+region	block_key	string	spatial annotation	yes	no	yes	关联蜡块
+region	region_role	category	pathology review	yes	no	yes	W-H、W-L-near、W-L-mid、W-L-far、B-L、N-far 或预设假边界区域
+region	boundary_control_type	category	pathology review	conditional	no	yes	true_HGD、non_HGD_morphologic、repair_erosion、random_equidistant 或 not_applicable
+region	distance_to_hgd_path_mm	number	spatial annotation	conditional	no	yes	沿黏膜连续路径到最近可信 HGD 边界的连续距离；W-L 必填，B-L 固定 NA/not_applicable
+region	distance_uncertainty_mm	number	spatial annotation	conditional	no	yes	边界和配准不确定度；W-L 必填，B-L 固定 NA/not_applicable
+region	distance_path_key	string	spatial annotation	conditional	no	yes	保存路径版本并禁止跨皱襞、裂隙或组织折叠取捷径
+region	distance_method_version	string	analysis contract	conditional	no	yes	距离算法与人工修订规则版本
+region	section_level	integer	spatial annotation	yes	no	yes	连续切片层号
+region	x_coordinate	number	spatial annotation	yes	no	yes	冻结坐标；单位随扫描定义
+region	y_coordinate	number	spatial annotation	yes	no	yes	冻结坐标；单位随扫描定义
+gland	gland_key	string	microdissection	yes	no	yes	腺体或腺体簇键
+gland	region_key	string	microdissection	yes	no	yes	关联区域
+gland	epithelial_purity	number	pathology/molecular QC	yes	no	yes	预设方法估计的上皮纯度
+gland	sampling_order	integer	microdissection	yes	no	yes	用于稀释和饱和曲线；不得仅保留最终入选腺体
+gland	gland_unit_type	category	microdissection	yes	no	yes	single_gland、gland_cluster；二者不得静默混用
+assay	assay_key	string	laboratory	yes	no	yes	检测运行键
+assay	gland_or_region_key	string	laboratory	yes	no	yes	关联腺体或区域
+assay	assay_type	category	laboratory	yes	no	yes	DNA、CNA、RNA、IHC、mIF、flow 等
+assay	batch_key	string	laboratory	yes	no	yes	批次键
+assay	qc_status	category	laboratory	yes	no	yes	pass、fail、conditional
+assay	qc_reason	string	laboratory	no	no	yes	失败或条件通过原因
+clone_event	event_key	string	molecular pipeline	conditional	no	yes	可回测 SNV/indel、特异断点、CNA 或线粒体事件键
+clone_event	assay_key	string	laboratory	conditional	no	yes	关联检测运行
+clone_event	gland_key	string	microdissection	conditional	no	yes	关联腺体；区域发现事件另在 assay 粒度记录
+clone_event	event_type	category	molecular pipeline	conditional	no	yes	private_snv_indel、breakpoint、cna、mitochondrial 或 fingerprint
+clone_event	locus_or_breakpoint	string	molecular pipeline	conditional	no	yes	标准化位点或断点；不得包含直接身份信息
+clone_event	common_hotspot_flag	boolean	annotation	conditional	no	yes	常见驱动热点不能单独作为克隆证据
+clone_event	ref_umi_count	integer	molecular pipeline	conditional	no	yes	参考等位基因 UMI 数
+clone_event	alt_umi_count	integer	molecular pipeline	conditional	no	yes	变异等位基因 UMI 数
+clone_event	vaf	number	molecular pipeline	conditional	no	yes	等位基因频率；计算方法版本化
+clone_event	lod_vaf	number	molecular pipeline	conditional	no	yes	该运行和位点的检出限
+clone_event	event_qc_status	category	molecular pipeline	conditional	no	yes	pass、fail、uncertain
+clone_call	clone_call_key	string	blind review	conditional	no	yes	腺体或区域相对 W-H 的克隆判定键
+clone_call	gland_or_region_key	string	blind review	conditional	no	yes	明确判定粒度；区域判定须同时报告可判读腺体分母
+clone_call	wh_reference_region_key	string	spatial annotation	conditional	no	yes	作为参考的 W-H 区域
+clone_call	clone_label	string	blind review	conditional	no	yes	冻结算法产生的克隆标签
+clone_call	clone_support	category	blind review	conditional	no	yes	strong、moderate、uncertain、not_supported、not_evaluable
+clone_call	evidence_type_count	integer	blind review	conditional	no	yes	相互支持证据类型数
+clone_call	evaluable_gland_n	integer	derived	conditional	no	yes	区域判定的可判读腺体分母；腺体判定记 1
+clone_call	same_as_wh_gland_n	integer	derived	conditional	no	yes	区域中支持与 W-H 同克隆的腺体数
+clone_call	classifier_blinded_flag	boolean	blind review	conditional	no	yes	判定时必须盲于区室表型
+clone_call	call_rule_version	string	analysis contract	conditional	no	yes	证据分级和不确定类规则版本
+phenotype	phenotype_key	string	assay pipeline	conditional	no	yes	冻结区室表型记录键
+phenotype	gland_or_region_key	string	assay pipeline	conditional	no	yes	主分析粒度；区域值不得复制给多个腺体
+phenotype	endpoint_id	string	analysis contract	conditional	no	yes	映射到 E1–E5 或预设支持终点
+phenotype	value	number	assay pipeline	conditional	no	yes	按冻结单位和变换保存
+phenotype	unit	string	analysis contract	conditional	no	yes	测量单位
+phenotype	analysis_grain	category	analysis contract	conditional	no	yes	gland、region、patient；必须与模型行粒度一致
+phenotype	qc_status	category	assay pipeline	conditional	no	yes	pass、fail、conditional
+region	dual_path_review_status	category	pathology review	conditional	no	yes	所有拟进入E1的near-L必填；agree_LGD、disagree、uncertain、not_applicable
+region	hgd_exclusion_buffer_mm	number	spatial QC/analysis contract	conditional	no	yes	L2冻结的HGD安全缓冲距离；原则为max(2×P95跨层配准误差,1个典型腺体直径)
+region	hgd_exclusion_buffer_pass	boolean	spatial annotation	conditional	no	yes	W-L坐标是否位于冻结buffer之外；E1 near-L必须为true
+region	sandwich_he_status	category	pathology review	conditional	no	yes	分子层组前后H&E对该坐标的纯LGD一致性：pass、HGD_present、uncertain、not_done
+region	pseudo_boundary_match_quality	category	spatial/pathology review	conditional	no	yes	伪边界与真HGD边界在病灶拓扑、边缘距离、黏膜长度和组织质量上的匹配质量
+gland	possible_hgd_admixture_flag	boolean	joint pathology/molecular QC	conditional	no	yes	是否存在低比例HGD混入/跨层错配的可疑模式；未解决者不进入主要E1
+gland	hgd_admixture_reason	string	joint pathology/molecular QC	conditional	no	yes	病理、配准和分子证据的结构化理由
+clone_event	hgd_private_reference_flag	boolean	molecular pipeline	conditional	no	yes	该事件是否属于W-H定义的HGD-private参考事件集合
+clone_event	admixture_safe_evidence_flag	boolean	blind review/QC	conditional	no	yes	该事件是否可在排除低比例HGD admixture后用于clone_support；false事件不得单独提升克隆等级
+e1_support	patient_key	string	derived	conditional	no	yes	E1可识别性患者级摘要键
+e1_support	same_clone_position_n	integer	derived	conditional	no	yes	strong/moderate same-clone且反污染QC通过的独立距离位置数；E1至少2，优先>=3
+e1_support	same_clone_distance_span_mm	number	derived	conditional	no	yes	该患者可用于E1的same-clone W-L最大减最小连续距离
+e1_support	d_min_mm	number	analysis contract	conditional	no	yes	由L2距离误差和腺体尺度冻结的最小可识别距离跨度；不得按表型调整
+e1_support	e1_distance_identifiable_flag	boolean	derived	conditional	no	yes	same_clone_position_n>=2且same_clone_distance_span_mm>d_min_mm并满足反污染条件
+e1_support	formal_e1_eligible_flag	boolean	derived	conditional	no	yes	未来正式规则下几何、同克隆跨度、主要表型、DNA和反污染QC均通过
+e1_support	formal_e1_failure_reason	category	derived	conditional	no	yes	geometry、clone_span、phenotype_qc、admixture、pathology_disagreement、other；保留唯一首个失败原因
+gate_metric	n_resource_eligible	integer	case funnel	yes	no	yes	完成病理、几何和组织余量审核后资源合格患者数
+gate_metric	n_formal_untouched	integer	derived	yes	no	yes	N_resource_eligible减去冻结TECH和PILOT保留数后的独立正式候选容量
+gate_metric	p_e1_plan	number	technical yield planning	conditional	no	yes	按预冻结保守规则由L3病例级formal_e1_eligible_flag得到的规划可分析率
+gate_metric	n_e1_expected	number	derived	conditional	no	yes	N_formal_untouched × p_e1_plan；单中心正式确认需>=40
